@@ -1,1 +1,4 @@
-syscall::open:entry { printf("FILE\nOPEN\n%s", copyinstr(arg0)); }
+syscall::open:entry
+{
+	printf("FILE\nOPEN\n%s\n\n", copyinstr(arg0));
+}

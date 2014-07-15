@@ -2,8 +2,9 @@ from ctypes import CDLL, Structure, CFUNCTYPE, POINTER, byref, c_int, c_char, \
   c_uint, c_char_p, c_void_p
 import time
 
-# load the native library for DTrace
+# load the native libraries for DTrace and C standard
 libdtrace = CDLL('libdtrace.dylib')
+libc = CDLL('libc.dylib')
 
 
 # ###############################################################################
@@ -44,7 +45,7 @@ class dtrace_recdesc(Structure):
 
 # ###############################################################################
 # callbacks signatures and callbacks definitions
-# (only buffered is used right now)
+# (only buffered does something right now)
 # ###############################################################################
 
 buffered_signature = CFUNCTYPE(c_int,
@@ -139,64 +140,82 @@ libdtrace.dtrace_stop.argtypes = [c_void_p]
 libdtrace.dtrace_stop = c_int
 
 
-class DTraceWrapper(object):
-  def __init__(self):
+# close
+libdtrace.dtrace_close.argtypes = [c_void_p]
+libdtrace.dtrace_close.restype = None
 
-    self.chew_wrapped = chew_signature(chew)
-    self.chewrec_wrapped = chewrec_signature(chewrec)
-    self.buffered_wrapped = buffered_signature(buffered)
+# libc open and close
+libc.fopen.argtypes = [c_char_p, c_char_p]
+libc.fopen.restype = c_void_p
+libc.fclose.argtypes = [c_void_p]
+libc.fclose.restype = c_int
 
-    # get handle (the line just below is just an error code passed by reference)
-    errorcode = c_int()
 
-    # $1 = DTrace version, $2 = Mac OS X flags (see open source OS X dtrace(1))
-    self.handle = libdtrace.dtrace_open(3, 4, byref(errorcode))
-    if not self.handle:
-      raise Exception('dtrace_open() failed, ' +
-                      libdtrace.dtrace_errmsg(None, errorcode))
+# get the last and most important error
+def last_error_msg(handle):
+  return libdtrace.dtrace_errmsg(handle, libdtrace.dtrace_errno(handle))
 
-    # set buffer options
-    if libdtrace.dtrace_setopt(self.handle, 'bufsize', '4m') != 0:
-      raise Exception(
-        'dtrace_setopt() failed, ' + self.last_error_msg(self.handle))
 
-    # set simple output callbacks
-    if libdtrace.dtrace_handle_buffered(self.handle, self.buffered_wrapped,
-                                        None):
-      raise Exception('dtrace_handle_buffered() failed, ' +
-                      self.last_error_msg(self.handle))
+def cleanup(dtrace=None, script=None):
+  if dtrace is not None:
+    libdtrace.dtrace_close(dtrace)
+  if script is not None:
+    libc.fclose(script)
 
-  def __del__(self):
 
-    # don't forget to close the handle
-    libdtrace.dtrace_close(self.handle)
+def run(script_path, output_path, runtime):
+  chew_wrapped = chew_signature(chew)
+  chewrec_wrapped = chewrec_signature(chewrec)
+  buffered_wrapped = buffered_signature(buffered)
 
-  # get the last and most important error
-  def last_error_msg(self, handle):
+  # get dtrace_handle (the line just below is just an error code passed by reference)
+  errorcode = c_int()
 
-    return libdtrace.dtrace_errmsg(handle, libdtrace.dtrace_errno(handle))
+  # $1 = DTrace version, $2 = Mac OS X flags (see open source OS X dtrace(1))
+  dtrace_handle = libdtrace.dtrace_open(3, 4, byref(errorcode))
+  if not dtrace_handle:
+    raise Exception('dtrace_open() failed, ' +
+                    libdtrace.dtrace_errmsg(None, errorcode))
 
-  def run_script(self, script, runtime):
+  # set buffer options
+  if libdtrace.dtrace_setopt(dtrace_handle, 'bufsize', '4m'):
+    cleanup(dtrace=dtrace_handle)
+    raise Exception(
+      'dtrace_setopt() failed, ' + last_error_msg(dtrace_handle))
 
-    # compile
-    prg = libdtrace.dtrace_program_fcompile(self.handle,
-                                            script, 0, 0, None)
-    if prg is None:
-      raise Exception('dtrace_program_strcompile() failed, ' +
-                      self.last_error_msg(self.handle))
+  # compile
 
-    # start
-    if libdtrace.dtrace_program_exec(self.handle, prg, None):
-      raise Exception('dtrace_program_exec() failed, ' +
-                      self.last_error_msg(self.handle))
-    if libdtrace.dtrace_go(self.handle):
-      raise Exception('dtrace_go() failed, ' + self.last_error_msg(self.handle))
+  script_handle = libc.fopen(script_path, 'r')
 
-    # main loop
-    initialtime = time.time()
-    while time.time() - initialtime < runtime:
-      libdtrace.dtrace_sleep(self.handle)
-      libdtrace.dtrace_work(self.handle, None, self.chew_wrapped,
-                            self.chewrec_wrapped, None)
+  prg = libdtrace.dtrace_program_fcompile(dtrace_handle,
+                                          script_handle, 0, 0, None)
+  if prg is None:
+    cleanup(dtrace=dtrace_handle, script=script_handle)
+    raise Exception('dtrace_program_strcompile() failed, ' +
+                    last_error_msg(dtrace_handle))
 
-    libdtrace.dtrace_stop(self.handle)
+  libc.fclose(script_handle)
+
+  # start
+  if libdtrace.dtrace_program_exec(dtrace_handle, prg, None):
+    cleanup(dtrace=dtrace_handle)
+    raise Exception('dtrace_program_exec() failed, ' +
+                    last_error_msg(dtrace_handle))
+
+  if libdtrace.dtrace_go(dtrace_handle):
+    cleanup(dtrace=dtrace_handle)
+    raise Exception('dtrace_go() failed, ' + last_error_msg(dtrace_handle))
+
+  # main loop
+
+  output_handle = libc.fopen(output_path, 'w')
+
+  initialtime = time.time()
+  while time.time() - initialtime < runtime:
+    libdtrace.dtrace_sleep(dtrace_handle)
+    libdtrace.dtrace_work(dtrace_handle, output_handle, chew_wrapped,
+                          chewrec_wrapped, None)
+
+  libc.fclose(output_handle)
+
+  libdtrace.dtrace_stop(dtrace_handle)

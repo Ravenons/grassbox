@@ -1,31 +1,14 @@
 #!/usr/bin/python
 
-from dtrace_wrapper import DTraceWrapper
-from ctypes import CDLL, c_int, c_char_p, c_void_p
-
-# import the native C standard library
-libc = CDLL('libc.dylib')
-
-# define function signatures
-libc.fopen.argtypes = [c_char_p, c_char_p]
-libc.fopen.restype = c_void_p
-libc.fclose.argtypes = [c_void_p]
-libc.fclose.restype = c_int
-
+import dtrace_wrapper
 
 def main():
-  # create the DTrace wrapper
-  dtrace = DTraceWrapper()
+  script_path = 'main_script.d'  # file path to DTrace program
+  output_path = 'output.txt'  # file path to write DTrace program output
+  runtime = 10  # approximate time Dtrace program will run
 
-  # open file
-  SCRIPT = libc.fopen('main_script.d', 'r')
-
-  # run script for some seconds
-  dtrace.run_script(SCRIPT, 10)
-
-  # close file
-  libc.fclose(SCRIPT)
-
+  # run DTrace script
+  dtrace_wrapper.run(script_path, output_path, runtime)
 
 if __name__ == '__main__':
   main()
