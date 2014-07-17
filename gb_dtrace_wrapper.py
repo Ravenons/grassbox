@@ -9,7 +9,7 @@ libc = CDLL('libc.dylib')
 
 # ###############################################################################
 # some C structures needed
-# (only buffered is used right now
+# (not used right now)
 # ###############################################################################
 
 class dtrace_bufdata(Structure):
@@ -45,7 +45,7 @@ class dtrace_recdesc(Structure):
 
 # ###############################################################################
 # callbacks signatures and callbacks definitions
-# (only buffered does something right now)
+# (buffered is not used right now, and chew and chewrec are almost dummy)
 # ###############################################################################
 
 buffered_signature = CFUNCTYPE(c_int,
@@ -76,9 +76,9 @@ def chewrec(data, rec, arg):
     return 1
   return 0
 
-################################################################################
+# ###############################################################################
 # Methods imported from dlibtrace, signatures definitions
-################################################################################
+# ###############################################################################
 
 # error getters (I use c_void_p as there's no need to know the structure)
 libdtrace.dtrace_errmsg.argtypes = [c_void_p, c_int]
@@ -163,10 +163,18 @@ def cleanup(dtrace=None, script=None):
     libc.fclose(script)
 
 
-def run(script_path, output_path, runtime):
+# ###############################################################################
+# Important methods, start_tracing and log_to_file
+################################################################################
+
+
+def start_tracing(script_path):
+  global chew_wrapped
+  global chewrec_wrapped
+  global dtrace_handle
+
   chew_wrapped = chew_signature(chew)
   chewrec_wrapped = chewrec_signature(chewrec)
-  buffered_wrapped = buffered_signature(buffered)
 
   # get dtrace_handle (the line just below is just an error code passed by reference)
   errorcode = c_int()
@@ -206,8 +214,10 @@ def run(script_path, output_path, runtime):
     cleanup(dtrace=dtrace_handle)
     raise Exception('dtrace_go() failed, ' + last_error_msg(dtrace_handle))
 
-  # main loop
+    # main loop
 
+
+def log_to_file(output_path, runtime):
   output_handle = libc.fopen(output_path, 'w')
 
   initialtime = time.time()
