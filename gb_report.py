@@ -8,6 +8,7 @@ class GrassboxReport(object):
 
     self.process_create = {original_pid: original_name}
     self.file_open = []
+    self.file_open_blacklist = ['/dev/dtracehelper']
 
   def __del__(self):
 
@@ -19,10 +20,14 @@ class GrassboxReport(object):
     current_line = self.input.readline()
     while current_line != '':
 
+      # first line in an item, pid associated to the event
       pid = int(current_line)
 
+      # second line in an item, event class
       current_line = self.input.readline()
-      if pid in self.process_create:
+
+      # naive approach, just taking into account new processes
+      if pid >= self.original_pid:
         if current_line == 'PROCESS\n':
           self._parse_process_item()
         elif current_line == 'FILE\n':
@@ -34,16 +39,19 @@ class GrassboxReport(object):
 
   def write_report(self):
 
-    self.output.write('############\n# process_create \n############' + '\n')
+    self.output.write(
+      '############\n# CREATED PROCESSES \n############' + '\n\n')
     for process_pid in self.process_create:
       self.output.write('\t' + str(process_pid) + ': ' +
                         self.process_create[process_pid] + '\n')
 
-    self.output.write('\n############\n# file_open\n############' + '\n')
+    self.output.write('\n############\n# OPENED FILES \n############' + '\n\n')
     for opened_file in self.file_open:
       self.output.write('\t' + opened_file + '\n')
 
   def _parse_process_item(self):
+
+    # third line in an item, event subclass
     current_line = self.input.readline()
     if current_line == 'CREATE\n':
       process_name = self.input.readline()
@@ -59,7 +67,8 @@ class GrassboxReport(object):
       self.input.readline()
 
   def _insert_opened_file(self, opened_file):
-    if not opened_file in self.file_open:
+    if (not opened_file in self.file_open) \
+        and (not opened_file in self.file_open_blacklist):
       self.file_open.append(opened_file)
 
   def _insert_created_process(self, process_name, process_pid):

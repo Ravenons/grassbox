@@ -11,8 +11,8 @@ import os
 def main():
   dtrace_script_path = 'main_script.d'  # file path to DTrace program
   dtrace_output_path = 'dtrace_output.txt'  # file path to write DTrace program output
-  dtrace_runtime = 5  # approximate time Dtrace program will run
-  binary_path = 'man'
+  dtrace_runtime = 10  # approximate time Dtrace program will run
+  binary_path = ['sleep', '8']
   report_path = 'report.txt'
 
   if os.path.exists(dtrace_output_path):
@@ -39,9 +39,8 @@ def main():
 
   p.join()
 
-  # create report
   report = gb_report.GrassboxReport(dtrace_output_path, report_path,
-                                    os.path.basename(binary_path),
+                                    os.path.basename(binary_path[0]),
                                     int(original_pid))
 
   report.parse_dtrace_output()

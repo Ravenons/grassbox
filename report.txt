@@ -1,13 +1,10 @@
 ############
-# process_create 
+# CREATED PROCESSES 
 ############
-	2225: man
+
+	1180: sleep
 
 ############
-# file_open
+# OPENED FILES 
 ############
-	/usr/lib/libxcselect.dylib
-	/dev/dtracehelper
-	/usr/share/locale/UTF-8/LC_CTYPE
-	/private/etc/man.conf
-	/usr/lib/locale/man/
+
