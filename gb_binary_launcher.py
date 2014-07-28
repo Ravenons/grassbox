@@ -15,12 +15,15 @@ def launch_binary(binary_path):
   uid = pw_db.pw_uid
   gid = pw_db.pw_gid
 
-  # cwd still not implemented
+  # cwd still not implemented / cwd=os.path.dirname(binary_path[0]),
+  # do we really need to close inherited fds? / close_fds=True,
+  # too much noise at dtrace_output.txt, subprocess library
+  # closes about 10k handles...
   child_process = subprocess.Popen(binary_path,
-                                   preexec_fn=change_user(uid, gid), env=env)
+                                   preexec_fn=change_user(uid, gid),
+                                   env=env)
 
   return child_process.pid
-
 
 def change_user(uid, gid):
   def my_callback():

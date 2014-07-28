@@ -11,8 +11,8 @@ import os
 def main():
   dtrace_script_path = 'main_script.d'  # file path to DTrace program
   dtrace_output_path = 'dtrace_output.txt'  # file path to write DTrace program output
-  dtrace_runtime = 10  # approximate time Dtrace program will run
-  binary_path = ['sleep', '8']
+  dtrace_runtime = 3  # approximate time Dtrace program will run
+  binary_path = ['./orwc']
   report_path = 'report.txt'
 
   if os.path.exists(dtrace_output_path):

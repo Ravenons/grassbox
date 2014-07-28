@@ -2,9 +2,22 @@
 # CREATED PROCESSES 
 ############
 
-	1180: sleep
+	2099: orwc
 
 ############
 # OPENED FILES 
 ############
 
+	/Users/thomas/lolazo.txt
+
+############
+# READ FILES 
+############
+
+	/Users/thomas/lolazo.txt
+
+############
+# WRITED FILES 
+############
+
+	/Users/thomas/lolazo.txt
