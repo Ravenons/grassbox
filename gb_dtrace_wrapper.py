@@ -1,3 +1,22 @@
+# The MIT-Zero License
+#
+# Copyright (c) 2014 Carlos Ledesma, Jose Toro
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 from ctypes import CDLL, Structure, CFUNCTYPE, POINTER, byref, c_int, c_char, \
   c_uint, c_char_p, c_void_p
 import time
@@ -7,12 +26,12 @@ libdtrace = CDLL('libdtrace.dylib')
 libc = CDLL('libc.dylib')
 
 
-# ###############################################################################
+################################################################################
 # some C structures needed
 # (not used right now)
-# ###############################################################################
+################################################################################
 
-class dtrace_bufdata(Structure):
+class DtraceBufData(Structure):
   _fields_ = [("dtbda_handle", c_void_p),
               ("dtbda_buffered", c_char_p),
               ("dtbda_probe", c_void_p),
@@ -21,7 +40,7 @@ class dtrace_bufdata(Structure):
               ("dtbda_flags", c_uint)]
 
 
-class dtrace_probedesc(Structure):
+class DtraceProbeDesc(Structure):
   _fields_ = [("dtrace_id_t", c_uint),
               ("dtpd_provider", c_char),
               ("dtpd_mod", c_char),
@@ -29,10 +48,10 @@ class dtrace_probedesc(Structure):
               ("dtpd_name", c_char_p)]
 
 
-class dtrace_probedata(Structure):
+class DtraceProbeData(Structure):
   _fields_ = [("dtpda_handle", c_void_p),
               ("dtpda_edesc", c_void_p),
-              ("dtpda_pdesc", dtrace_probedesc),
+              ("dtpda_pdesc", DtraceProbeDesc),
               ("dtpda_cpu", c_int),
               ("dtpda_data", c_void_p),
               ("dtpda_flow", c_void_p),
@@ -40,25 +59,25 @@ class dtrace_probedata(Structure):
               ("dtpda_indent", c_int)]
 
 
-class dtrace_recdesc(Structure):
+class DtraceRecDesc(Structure):
   _fields_ = [("dtrd_offset", c_uint)]
 
-# ###############################################################################
+################################################################################
 # callbacks signatures and callbacks definitions
 # (buffered is not used right now, and chew and chewrec are almost dummy)
-# ###############################################################################
+################################################################################
 
 buffered_signature = CFUNCTYPE(c_int,
-                               POINTER(dtrace_bufdata),
+                               POINTER(DtraceBufData),
                                POINTER(c_void_p))
 
 chew_signature = CFUNCTYPE(c_int,
-                           POINTER(dtrace_probedata),
+                           POINTER(DtraceProbeData),
                            POINTER(c_void_p))
 
 chewrec_signature = CFUNCTYPE(c_int,
-                              POINTER(dtrace_probedata),
-                              POINTER(dtrace_recdesc),
+                              POINTER(DtraceProbeData),
+                              POINTER(DtraceRecDesc),
                               POINTER(c_void_p))
 
 
@@ -76,9 +95,9 @@ def chewrec(data, rec, arg):
     return 1
   return 0
 
-# ###############################################################################
+################################################################################
 # Methods imported from dlibtrace, signatures definitions
-# ###############################################################################
+################################################################################
 
 # error getters (I use c_void_p as there's no need to know the structure)
 libdtrace.dtrace_errmsg.argtypes = [c_void_p, c_int]
@@ -86,59 +105,48 @@ libdtrace.dtrace_errmsg.restype = c_char_p
 libdtrace.dtrace_errno.argtypes = [c_void_p]
 libdtrace.dtrace_errno.restype = c_int
 
-
 # open DTrace's handle
 libdtrace.dtrace_open.argtypes = [c_int, c_int, POINTER(c_int)]
 libdtrace.dtrace_open.restype = c_void_p
 
-
 # modify DTrace options
 libdtrace.dtrace_setopt.argtypes = [c_void_p, c_char_p, c_char_p]
 libdtrace.dtrace_setopt.restype = c_int
-
 
 # register simple output callback
 libdtrace.dtrace_handle_buffered.argtypes = [c_void_p, buffered_signature,
                                              c_void_p]
 libdtrace.dtrace_handle_buffered.restype = c_int
 
-
 # handle close
 libdtrace.dtrace_close.argtypes = [c_void_p]
 libdtrace.dtrace_close.restype = None
-
 
 # compile
 libdtrace.dtrace_program_fcompile.argtypes = [c_void_p, c_void_p, c_int,
                                               c_int, POINTER(c_char_p)]
 libdtrace.dtrace_program_fcompile.restype = c_void_p
 
-
 # execute
 libdtrace.dtrace_program_exec.argtypes = [c_void_p, c_void_p, c_void_p]
 libdtrace.dtrace_program_exec.restype = c_int
-
 
 # go
 libdtrace.dtrace_go.argtypes = [c_void_p]
 libdtrace.dtrace_go.restype = c_int
 
-
 # sleep
 libdtrace.dtrace_sleep.argtypes = [c_void_p]
 libdtrace.dtrace_sleep.restype = None
-
 
 # work
 libdtrace.dtrace_work.argtypes = [c_void_p, c_void_p, chew_signature,
                                   chewrec_signature, c_void_p]
 libdtrace.dtrace_work.restype = c_int
 
-
 # stop
 libdtrace.dtrace_stop.argtypes = [c_void_p]
 libdtrace.dtrace_stop = c_int
-
 
 # close
 libdtrace.dtrace_close.argtypes = [c_void_p]
@@ -150,11 +158,9 @@ libc.fopen.restype = c_void_p
 libc.fclose.argtypes = [c_void_p]
 libc.fclose.restype = c_int
 
-
 # get the last and most important error
 def last_error_msg(handle):
   return libdtrace.dtrace_errmsg(handle, libdtrace.dtrace_errno(handle))
-
 
 def cleanup(dtrace=None, script=None):
   if dtrace is not None:
@@ -162,11 +168,9 @@ def cleanup(dtrace=None, script=None):
   if script is not None:
     libc.fclose(script)
 
-
-# ###############################################################################
+################################################################################
 # Important methods, start_tracing and log_to_file
 ################################################################################
-
 
 def start_tracing(script_path):
   global chew_wrapped
@@ -192,7 +196,6 @@ def start_tracing(script_path):
       'dtrace_setopt() failed, ' + last_error_msg(dtrace_handle))
 
   # compile
-
   script_handle = libc.fopen(script_path, 'r')
 
   prg = libdtrace.dtrace_program_fcompile(dtrace_handle,
