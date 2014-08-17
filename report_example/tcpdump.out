@@ -1,0 +1,15 @@
+20:04:28.694548 IP 192.168.1.227.5353 > 224.0.0.251.5353: 0*- [0q] 1/0/0 PTR ASPIREREVO._airplayit._tcp.local. (58)
+20:04:28.799561 IP 69.171.235.19.443 > 192.168.1.132.53748: Flags [P.], seq 1280393402:1280393487, ack 1407256420, win 310, options [nop,nop,TS val 868912465 ecr 267520557], length 85
+20:04:28.799596 IP 192.168.1.132.53748 > 69.171.235.19.443: Flags [.], ack 85, win 8186, options [nop,nop,TS val 267532009 ecr 868912465], length 0
+20:04:29.414090 IP 149.154.167.90.443 > 192.168.1.132.53926: Flags [P.], seq 416738502:416738591, ack 1384325172, win 3620, options [nop,nop,TS val 666880382 ecr 267524434], length 89
+20:04:29.414128 IP 192.168.1.132.53926 > 149.154.167.90.443: Flags [.], ack 89, win 8186, options [nop,nop,TS val 267532623 ecr 666880382], length 0
+20:04:29.514191 IP 192.168.1.227.5353 > 224.0.0.251.5353: 0 [1n] ANY (QU)? ASPIREREVO._airplayit._tcp.local. (81)
+20:04:29.719142 IP 192.168.1.227.5353 > 224.0.0.251.5353: 0 [1n] ANY (QM)? ASPIREREVO._airplayit._tcp.local. (81)
+20:04:30.028111 IP 192.168.1.227.5353 > 224.0.0.251.5353: 0 [1n] ANY (QM)? ASPIREREVO._airplayit._tcp.local. (81)
+20:04:30.028565 IP 108.160.167.51.80 > 192.168.1.132.53750: Flags [P.], seq 441212320:441212499, ack 3766404723, win 68, options [nop,nop,TS val 2544280756 ecr 267477617], length 179
+20:04:30.028597 IP 192.168.1.132.53750 > 108.160.167.51.80: Flags [.], ack 179, win 8180, options [nop,nop,TS val 267533237 ecr 2544280756], length 0
+20:04:30.030142 IP 192.168.1.132.53750 > 108.160.167.51.80: Flags [P.], seq 1:393, ack 179, win 8192, options [nop,nop,TS val 267533238 ecr 2544280756], length 392
+20:04:30.231366 IP 192.168.1.227.5353 > 224.0.0.251.5353: 0*- [0q] 4/0/4 (Cache flush) TXT "", PTR _airplayit._tcp.local., PTR ASPIREREVO._airplayit._tcp.local., (Cache flush) SRV ASPIREREVO.local.:37218 0 0 (224)
+20:04:30.237335 IP 108.160.167.51.80 > 192.168.1.132.53750: Flags [.], ack 393, win 70, options [nop,nop,TS val 2544280811 ecr 267533238], length 0
+20:04:30.435858 IP 69.171.235.19.443 > 192.168.1.132.53748: Flags [P.], seq 85:906, ack 1, win 310, options [nop,nop,TS val 868914117 ecr 267532009], length 821
+20:04:30.435895 IP 192.168.1.132.53748 > 69.171.235.19.443: Flags [.], ack 906, win 8140, options [nop,nop,TS val 267533641 ecr 868914117], length 0

@@ -65,7 +65,7 @@ class GrassboxReport(object):
 
   Attributes:
     input: File where the Dtrace output is located
-    output: File where the Grassbox report is gonna to be written
+    output: Location where the Grassbox report is gonna to be written
     original_pid: PID from the process analyzed by Grassbox
     processes_created: Dictionary with PID -> Processes pairs, representing the processes created by the analyzed process
     files_opened: List of files opened by the analyzed process

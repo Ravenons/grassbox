@@ -28,4 +28,5 @@ int main() {
 	read(fd, buf, 10);
 	write(fd, buf, 10);
 	close(fd);
+	sleep(3);
 }

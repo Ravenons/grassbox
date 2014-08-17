@@ -22,12 +22,15 @@
 import gb_dtrace_wrapper
 import gb_binary_launcher
 import gb_report
+import gb_network
 
 import multiprocessing
 import os
+import sys
 
 def main():
   """ Grassbox main script. """
+
   dtrace_script_path = 'main_script.d'      # file path to DTrace program
   dtrace_output_path = 'dtrace_output.txt'  # file path to write DTrace program output
   dtrace_runtime = 3                        # approximate time Dtrace program will run
@@ -54,20 +57,35 @@ def main():
                               args=(dtrace_output_path, dtrace_runtime))
   p.start()
 
+  # start network monitoring
+  network = gb_network.NetworkReport()
+
   # launch binary
   original_pid = gb_binary_launcher.launch_binary(binary_path)
 
   # debug purposes
   print 'Original binary PID: ' + str(original_pid)
 
+  # wait process to finish
   p.join()
+  
+  # stop network monitoring
+  network.finish()
 
+  # generate dtrace report
+  print('Generating DTrace report...')
   report = gb_report.GrassboxReport(dtrace_output_path, report_path,
                                     os.path.basename(binary_path[0]),
                                     int(original_pid))
 
   report.parse_dtrace_output()
   report.write_report()
+
+  # generate network report
+  print('Generating Network report...')
+  network.generate()
+
+  print('Done!')
 
 if __name__ == '__main__':
   main()
