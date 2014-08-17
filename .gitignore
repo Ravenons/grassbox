@@ -1,5 +1,3 @@
 .idea
-dtrace_output.txt
-report.txt
 *.pyc
 grassbox.conf

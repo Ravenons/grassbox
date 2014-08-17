@@ -1,0 +1,23 @@
+############
+# PROCESSES CREATED 
+############
+
+	13817: orwc
+
+############
+# FILES OPENED 
+############
+
+	orwc_test.txt
+
+############
+# FILES READ 
+############
+
+	orwc_test.txt
+
+############
+# FILES WRITTEN 
+############
+
+	orwc_test.txt
